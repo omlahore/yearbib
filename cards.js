@@ -74,7 +74,7 @@ ${ev >= 0.1 ? `<div class="dash"></div><div class="ev"><span>All that climbing, 
     const verb = { Run: "running", Ride: "riding", Walk: "walking", Swim: "swimming", Other: "training" };
     return frame(o, 3, "By sport", "Where the", "hours went.", `
 <div class="yb-mid"><div class="lanes">
-${list.map((sp, i) => `<div class="lane"><span class="ln">${i + 1}</span><div class="lc"><div class="lt"><b>${sp.name}</b><span>${hrs(sp.moving)} h · ${sp.dist > 0 ? `${o.u.d(sp.dist)} ${o.u.short} · ` : ""}${sp.count}×</span></div><div class="track"><div style="width:${Math.max(3, Math.round(sp.moving / max * 100))}%;background:${i === 0 ? "var(--accent)" : "#DDE1D2"}"></div></div></div></div>`).join("")}
+${list.map((sp, i) => `<div class="lane"><span class="ln">${i + 1}</span><div class="lc"><div class="lt"><b>${sp.name}</b><span>${hrs(sp.moving)} h · ${sp.dist > 0 ? `${o.u.d(sp.dist)} ${o.u.short} · ` : ""}${sp.count}×</span></div><div class="yb-track"><div style="width:${Math.max(3, Math.round(sp.moving / max * 100))}%;background:${i === 0 ? "var(--accent)" : "#DDE1D2"}"></div></div></div></div>`).join("")}
 </div></div>
 <p class="yb-note">Most of your year went to <b>${verb[topS?.name] || "training"}, ${hrs(topS?.moving || 0)} hours.</b></p>`);
   },
@@ -117,7 +117,7 @@ ${list.map((sp, i) => `<div class="lane"><span class="ln">${i + 1}</span><div cl
     const cap = a => `<span class="nm">${esc(a.name || a.type)}</span><span class="dt">${dayName(a.date)}</span>`;
     const L = s.longest, C = s.biggestClimb, T = s.longestTime;
     return frame(o, 6, "Big days", "The ones you", "remember.", `
-<div class="yb-mid col big">
+<div class="yb-mid col yb-big">
 <div class="bigone">${medal(360, "var(--accent)", "Longest", u.d(L.dist), u.short.toUpperCase(), "lg")}${cap(L)}</div>
 <div class="two">
 ${C && C.elev > 0 ? `<div>${medal(250, "#DDE1D2", "Most climbing", u.e(C.elev).replace(/ (m|ft)$/, ""), o.u.short === "mi" ? "FT" : "M", "sm")}${cap(C)}</div>` : ""}

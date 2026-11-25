@@ -47,7 +47,7 @@ function landing() {
   $("over").append(thumb(renderCard("profile", s, o), 220));
   const sc = $("scatter");
   [["bib", "01 · The bib", 2, 60, -4], ["results", "02 · Official results", 27, 220, 3], ["log", "05 · Training log", 52, 20, -2], ["route", "07 · Longest route", 77, 180, 5]].forEach(([k, label, x, y, rot]) => {
-    const d = document.createElement("div"); d.className = "sc"; d.style.cssText = `left:${x}%;top:${y}px;transform:rotate(${rot}deg)`;
+    const d = document.createElement("div"); d.className = "scat"; d.style.cssText = `left:${x}%;top:${y}px;transform:rotate(${rot}deg)`;
     d.append(thumb(renderCard(k, s, o), 240));
     const p = document.createElement("p"); p.textContent = label; d.append(p);
     sc.append(d);

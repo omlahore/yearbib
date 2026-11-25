@@ -44,7 +44,7 @@
 .lane{height:200px;display:flex;align-items:center;gap:28px;border-bottom:4px solid rgba(244,244,237,.85);padding:0 28px 0 18px}
 .ln{width:96px;flex:none;font-family:"Hubot Sans";font-stretch:75%;font-weight:800;font-size:150px;line-height:1;color:rgba(244,244,237,.16)}
 .lc{flex:1;display:flex;flex-direction:column;gap:14px}.lt{display:flex;justify-content:space-between;align-items:baseline}.lt b{font-family:"Hubot Sans";font-stretch:125%;font-weight:800;font-size:44px;letter-spacing:-.02em}.lt span{font-size:26px;font-weight:500;color:#DDE1D2}
-.track{height:22px;border-radius:999px;background:rgba(244,244,237,.1);overflow:hidden}.track div{height:100%;border-radius:999px}
+.yb-track{height:22px;border-radius:999px;background:rgba(244,244,237,.1);overflow:hidden}.yb-track div{height:100%;border-radius:999px}
 /* profile */
 .prof{position:relative;height:760px}.prof svg{position:absolute;inset:0;width:100%;height:100%}
 .flag{position:absolute;transform:translate(-50%,-100%);margin-top:11px;display:flex;flex-direction:column;align-items:center}.flag b{font-family:"Hubot Sans";font-stretch:125%;font-weight:800;font-size:46px;letter-spacing:-.02em;white-space:nowrap}.flag i{width:3px;height:70px;background:#F4F4ED}.flag em{width:22px;height:22px;border-radius:50%;background:#D2FF00;border:5px solid var(--ground);margin-top:-11px}
@@ -56,7 +56,7 @@
 .legend{display:flex;justify-content:space-between;align-items:center;padding:26px 0 30px;border-top:1.5px solid rgba(221,225,210,.3);font-size:30px;font-weight:500;color:#DDE1D2}.legend b{color:#F4F4ED;font-weight:700}
 .legend .sc{display:flex;align-items:center;gap:8px;font-size:18px;letter-spacing:.16em;text-transform:uppercase;color:#B4B8A5}.legend .sc i{width:24px;height:24px;border-radius:6px}
 /* big days */
-.big{gap:60px}.bigone,.two>div{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+.yb-big{gap:60px}.bigone,.two>div{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
 .two{display:grid;grid-template-columns:repeat(2,1fr);gap:40px}
 .medal{display:flex;flex-direction:column;align-items:center}
 .rib{display:flex}.rib i{display:block;box-shadow:inset -6px 0 0 rgba(0,0,0,.12)}.rib i:first-child{transform:skewX(14deg)}.rib i:last-child{transform:skewX(-14deg)}
