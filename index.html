@@ -4,55 +4,101 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Yearbib: your year in sport, free</title>
-<meta name="description" content="Turn the export Strava already gives you into a year-in-sport recap. Free, and nothing leaves your browser.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Familjen+Grotesk:wght@400;600&family=Martian+Mono:wght@400;600&display=swap" rel="stylesheet">
+<meta name="description" content="Strava charges $80 a year for its Year in Sport. Yearbib makes yours free from the export Strava gives you, right in your browser.">
+<meta property="og:title" content="Yearbib: your year in sport, free">
+<meta property="og:description" content="Seven shareable cards from your Strava export. Free, and nothing leaves your device.">
+<link rel="preload" href="fonts/mona-sans-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/hubot-sans-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="cards.css">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="top"><span class="mark">Yearbib</span><a href="https://github.com/omlahore/yearbib">Source on GitHub</a></header>
+<main id="landing">
+<section class="paper-bg hero">
+<header class="nav">
+<a href="#top" class="wm" aria-label="Yearbib home"><i></i>yearbib<i></i></a>
+<nav aria-label="Main"><a href="#how">How it works</a><a href="#privacy">Privacy</a><a href="#drop" class="pill volt">Make your recap</a></nav>
+</header>
+<div id="top" class="hero-copy">
+<h1 class="hh">
+<span class="mask"><span><em>Your year</em> in sport,</span></span>
+<span class="mask"><span>made from</span></span>
+<span class="mask"><span><em class="nw">your export</em></span></span>
+</h1>
+<p>Strava now charges $80 a year for its Year in Sport recap. Yearbib makes yours from the data export Strava gives you for free, and it all happens in your browser.</p>
+</div>
+<div class="stage" id="stage" aria-label="Three example recap cards" role="img"></div>
+<aside class="vs"><span>Strava recap</span><b>$80 a year</b><span class="sep">Yearbib</span><b>Free</b></aside>
+</section>
 
-<main>
-  <section class="hero" id="intro">
-    <div class="pitch">
-      <h1>Your year in sport, free.</h1>
-      <p>Strava now charges $80 a year for its Year in Sport. Everything it needs is already in the data export Strava gives you for free. Drop that zip here and get your year as cards you can share.</p>
-      <p class="private">Your file is read on this device. Nothing is uploaded.</p>
-    </div>
-    <canvas id="sample" class="sample" width="1080" height="1920" aria-label="Example recap card"></canvas>
-  </section>
+<section class="olive-bg band-sec">
+<div class="marquee" aria-hidden="true">
+<div class="track l"><span>Every kilometre · every climb · every streak ·</span><span>Every kilometre · every climb · every streak ·</span></div>
+<div class="track r"><span>Your whole season on seven cards ·</span><span>Your whole season on seven cards ·</span></div>
+<div class="over" id="over"></div>
+</div>
+<div class="wrap">
+<h2 class="h2c"><em>Seven cards</em> for your story</h2>
+<p class="lede">Your bib with the year's distance on it, the totals, hours by sport, your season's profile, a training log, your biggest days, and your longest route. Each one is sized for an Instagram or WhatsApp story.</p>
+<div class="scatter" id="scatter"></div>
+</div>
+</section>
 
-  <section class="drop" id="drop" tabindex="0" role="button" aria-describedby="drop-help">
-    <span class="pin tl"></span><span class="pin tr"></span><span class="pin bl"></span><span class="pin br"></span>
-    <strong>Drop your export zip here</strong>
-    <span id="drop-help">or choose the file. Big exports with photos are fine.</span>
-    <input type="file" id="file" accept=".zip,application/zip">
-    <span class="status" id="status" role="status"></span>
-  </section>
+<section id="how" class="olive-bg how">
+<div class="wrap">
+<h2 class="h2"><em>Three steps</em> to your recap</h2>
+<ol class="steps">
+<li><span class="k">Step 01</span><h3>Ask Strava for your data</h3><p>On strava.com open Settings, then My Account. Under Download or Delete Your Account, choose Get Started, then Request Your Archive.</p></li>
+<li><span class="k">Step 02</span><h3>Download the zip</h3><p>Strava emails you a link, usually within a few hours. The zip holds everything you have recorded.</p></li>
+<li><span class="k">Step 03</span><h3>Drop it on this page</h3><p>Pick the year and your colours, then save the cards or share them to your story.</p></li>
+</ol>
+</div>
+</section>
 
-  <section class="how">
-    <h2>Getting your export</h2>
-    <ol>
-      <li>On strava.com, open Settings, then My Account.</li>
-      <li>Under "Download or Delete Your Account", choose Get Started, then Request Your Archive.</li>
-      <li>Strava emails you a link to the zip, usually within a few hours. Download it and drop it above.</li>
-    </ol>
-  </section>
+<section id="drop" class="paper-bg drop-sec">
+<label class="drop" id="dropzone" for="file">
+<span class="dh"><em>Drop</em> your Strava zip here</span>
+<span class="dp">It's the file Strava emails you, named something like export_48120395.zip. Exports with photos in them work too.</span>
+<span class="pill dark">Choose the file</span>
+<input id="file" type="file" accept=".zip,application/zip">
+<span class="status" id="status" role="status" aria-live="polite"></span>
+</label>
+</section>
 
-  <section class="result" id="result" hidden>
-    <div class="controls">
-      <label>Year <select id="year"></select></label>
-      <div class="units" role="group" aria-label="Units">
-        <button data-mi="0" aria-pressed="true">km</button><button data-mi="1" aria-pressed="false">miles</button>
-      </div>
-      <button class="primary" id="saveall">Save all cards</button>
-    </div>
-    <div class="cards" id="cards"></div>
-  </section>
+<section id="privacy" class="olive-bg priv">
+<div class="wrap row2">
+<h2 class="h2"><em>Nothing</em> leaves your device</h2>
+<div><p>Your zip is opened inside this browser tab. Yearbib has no accounts and no server that sees your activities. When you close the tab, the data is gone.</p><p>The code is open source if you want to check. <a href="https://github.com/omlahore/yearbib">Read it on GitHub</a>.</p></div>
+</div>
+</section>
 </main>
 
-<footer>Not made by or affiliated with Strava. Works with the export from your Strava account. Open source.</footer>
+<main id="recap" hidden>
+<header class="nav dark">
+<a href="#" class="wm" id="home" aria-label="Yearbib home"><i></i>yearbib<i></i></a>
+<nav><span class="muted" id="found"></span><a href="#" id="again">Start again with another zip</a></nav>
+</header>
+<div class="recap">
+<aside class="panel" aria-label="Customise your cards">
+<h1 class="ph"><span id="ptitle"></span><em>your way.</em></h1>
+<div class="fld"><label for="nm">Name on the cards</label><input id="nm" type="text" maxlength="24" autocomplete="given-name"></div>
+<div class="fld"><span class="lab">Colours</span><div class="sws" id="themes" role="radiogroup" aria-label="Colour theme"></div><span class="tname" id="tname"></span></div>
+<div class="fld"><span class="lab">Sport</span><div class="pills" id="sports" role="radiogroup" aria-label="Sport"></div></div>
+<div class="fld"><span class="lab">Number on the bib</span><div class="pills" id="bibs" role="radiogroup" aria-label="Number on the bib"></div></div>
+<div class="two-sel">
+<label class="fld">Year<select id="year"></select></label>
+<label class="fld">Units<select id="unit"><option value="0">Kilometres</option><option value="1">Miles</option></select></label>
+</div>
+<label class="switch-row">Contour lines in the background<button role="switch" aria-checked="true" id="contours" class="switch"><span></span></button></label>
+<div class="acts"><button class="pill volt big" id="saveall">Save all cards</button><button class="pill ghost big" id="shareall" hidden>Share to story</button></div>
+</aside>
+<section class="grid" id="grid" aria-label="Your cards"></section>
+</div>
+</main>
+
+<div id="render" aria-hidden="true"></div>
+<footer class="olive-bg foot"><div class="wrap fr"><span>Yearbib</span><span>Not made by or affiliated with Strava. Strava is a trademark of Strava, Inc.</span></div></footer>
+<script src="vendor/html-to-image.js"></script>
 <script type="module" src="app.js"></script>
 </body>
 </html>

@@ -94,15 +94,21 @@ export async function readRoutes(zip, base, acts, onProgress = () => {}) {
 
 export function gpxPoints(x) {
   const pts = [];
-  for (const m of x.matchAll(/<trkpt\b([^>]*)>/g)) {
-    const la = /lat="([-\d.]+)"/.exec(m[1]), lo = /lon="([-\d.]+)"/.exec(m[1]);
-    if (la && lo) pts.push([+la[1], +lo[1]]);
+  for (const m of x.matchAll(/<trkpt\b([^>]*)>([\s\S]*?)<\/trkpt>|<trkpt\b([^>]*)\/>/g)) {
+    const a = m[1] ?? m[3];
+    const la = /lat="([-\d.]+)"/.exec(a), lo = /lon="([-\d.]+)"/.exec(a);
+    const el = m[2] && /<ele>([-\d.]+)<\/ele>/.exec(m[2]);
+    if (la && lo) pts.push([+la[1], +lo[1], el ? +el[1] : null]);
   }
   return pts;
 }
 export function tcxPoints(x) {
   const pts = [];
-  for (const m of x.matchAll(/<LatitudeDegrees>([-\d.]+)<\/LatitudeDegrees>\s*<LongitudeDegrees>([-\d.]+)<\/LongitudeDegrees>/g)) pts.push([+m[1], +m[2]]);
+  for (const m of x.matchAll(/<Trackpoint>([\s\S]*?)<\/Trackpoint>/g)) {
+    const la = /<LatitudeDegrees>([-\d.]+)</.exec(m[1]), lo = /<LongitudeDegrees>([-\d.]+)</.exec(m[1]);
+    const el = /<AltitudeMeters>([-\d.]+)</.exec(m[1]);
+    if (la && lo) pts.push([+la[1], +lo[1], el ? +el[1] : null]);
+  }
   return pts;
 }
 async function loadFit() {
@@ -110,7 +116,7 @@ async function loadFit() {
   const k = 180 / 2 ** 31;
   return bytes => {
     const { messages } = new Decoder(Stream.fromByteArray(bytes)).read({ applyScaleAndOffset: true, convertDateTimesToDates: false });
-    return (messages.recordMesgs || []).filter(r => r.positionLat != null && r.positionLong != null).map(r => [r.positionLat * k, r.positionLong * k]);
+    return (messages.recordMesgs || []).filter(r => r.positionLat != null && r.positionLong != null).map(r => [r.positionLat * k, r.positionLong * k, r.enhancedAltitude ?? r.altitude ?? null]);
   };
 }
 const thin = (p, max) => p.length <= max ? p : Array.from({ length: max }, (_, i) => p[Math.round(i * (p.length - 1) / (max - 1))]);

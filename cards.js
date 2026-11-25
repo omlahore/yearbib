@@ -1,214 +1,169 @@
-import { EVEREST_M, EARTH_KM } from "./stats.js";
+import { EVEREST_M } from "./stats.js";
 
-export const C = { track: "#3D2A7A", trackDeep: "#2A1C58", lane: "#B9A8F0", bib: "#FFFFFF", ink: "#121018", soft: "#6B6480", tape: "#FFD23F" };
-export const F = { display: "Big Shoulders Display", body: "Familjen Grotesk", mono: "Martian Mono" };
-const W = 1080, H = 1920;
-const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const DAYS = ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"];
-
-export async function loadFonts() {
-  await Promise.all([`900 100px "${F.display}"`, `700 100px "${F.display}"`, `400 40px "${F.body}"`, `600 40px "${F.body}"`, `400 30px "${F.mono}"`, `600 30px "${F.mono}"`].map(f => document.fonts.load(f)));
-}
+export const THEMES = [
+  { name: "Olive and moss", ground: "#282C20", accent: "#B2C73A" },
+  { name: "Night and volt", ground: "#121418", accent: "#D2FF00" },
+  { name: "Ocean and ice", ground: "#14253A", accent: "#7FD4FF" },
+  { name: "Plum and lilac", ground: "#2A1F33", accent: "#E3A8FF" },
+];
+const MON = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fmt = n => Math.round(n).toLocaleString("en");
+const hm = s => `${Math.floor(s / 3600)} h ${String(Math.round(s % 3600 / 60)).padStart(2, "0")} m`;
+const hrs = s => s >= 36000 ? fmt(s / 3600) : (s / 3600).toFixed(1).replace(/\.0$/, "");
+const dayName = d => `${d.getUTCDate()} ${MON[d.getUTCMonth()]}`;
 
 export function units(mi) {
   const k = mi ? 1609.344 : 1000;
   return {
-    mi, name: mi ? "miles" : "kilometres", short: mi ? "mi" : "km",
-    d: m => { const v = m / k; return v >= 100 ? Math.round(v).toLocaleString("en") : v.toFixed(1); },
-    e: m => mi ? Math.round(m * 3.28084).toLocaleString("en") + " ft" : Math.round(m).toLocaleString("en") + " m",
+    short: mi ? "mi" : "km", long: mi ? "Miles" : "Kilometres",
+    d: (m, dp) => { const v = m / k; return dp != null ? v.toLocaleString("en", { minimumFractionDigits: dp, maximumFractionDigits: dp }) : v >= 100 ? fmt(v) : v.toFixed(1); },
+    e: m => mi ? `${fmt(m * 3.28084)} ft` : `${fmt(m)} m`,
+    k,
   };
 }
-const hrs = s => s >= 36000 ? Math.round(s / 3600).toLocaleString("en") : (s / 3600).toFixed(1);
 
-function font(ctx, w, size, fam) { ctx.font = `${w} ${size}px "${fam}"`; }
-function fit(ctx, text, w, max, fam, maxW) {
-  let s = max; font(ctx, w, s, fam);
-  while (ctx.measureText(text).width > maxW && s > 10) { s -= 4; font(ctx, w, s, fam); }
-  return s;
-}
-function txt(ctx, s, x, y, { w = 400, size = 40, fam = F.body, color = C.ink, align = "left", track = 0 } = {}) {
-  font(ctx, w, size, fam); ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = "alphabetic";
-  if ("letterSpacing" in ctx) ctx.letterSpacing = track + "px";
-  ctx.fillText(s, x, y);
-  if ("letterSpacing" in ctx) ctx.letterSpacing = "0px";
-}
-function rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
-
-function ground(ctx, year, brand) {
-  ctx.fillStyle = C.track; ctx.fillRect(0, 0, W, H);
-  ctx.save(); ctx.strokeStyle = C.lane; ctx.globalAlpha = .18; ctx.lineWidth = 4;
-  for (let i = -6; i < 14; i++) { ctx.beginPath(); ctx.moveTo(i * 150, H); ctx.lineTo(i * 150 + 700, 0); ctx.stroke(); }
-  ctx.restore();
-  txt(ctx, brand, 72, H - 64, { fam: F.mono, size: 26, color: C.lane, w: 600, track: 2 });
-  txt(ctx, String(year), W - 72, H - 64, { fam: F.mono, size: 26, color: C.lane, w: 600, align: "right", track: 2 });
+function frame(o, n, kicker, l1, l2, body) {
+  return `<div class="yb-card${o.contours ? " topo" : ""}" style="--ground:${o.theme.ground};--accent:${o.theme.accent}">
+<div class="yb-top"><span class="yb-wm"><i></i>yearbib<i></i></span><span class="yb-cap">${esc(o.name)} · Season ${o.year}</span></div>
+<p class="yb-kick">${kicker}</p>
+<h1 class="yb-h"><span>${l1}</span><span class="w">${l2}</span></h1>
+${body}
+<div class="yb-foot"><span class="yb-cap">yearbib.com</span><span class="yb-tag">0${n} / 07</span></div>
+</div>`;
 }
 
-// The signature object: a race bib with safety-pin holes and a tear-off strip.
-function bib(ctx, x, y, w, h) {
-  ctx.save(); ctx.shadowColor = "rgba(10,5,30,.45)"; ctx.shadowBlur = 40; ctx.shadowOffsetY = 18;
-  rr(ctx, x, y, w, h, 22); ctx.fillStyle = C.bib; ctx.fill(); ctx.restore();
-}
-function pins(ctx, x, y, w, h) {
-  for (const [px, py] of [[x + 42, y + 42], [x + w - 42, y + 42], [x + 42, y + h - 42], [x + w - 42, y + h - 42]]) {
-    ctx.beginPath(); ctx.arc(px, py, 13, 0, 7); ctx.fillStyle = C.track; ctx.fill();
-    ctx.beginPath(); ctx.arc(px, py, 19, 0, 7); ctx.strokeStyle = "#D9D4E6"; ctx.lineWidth = 3; ctx.stroke();
-  }
-}
-function perf(ctx, x1, x2, y) {
-  ctx.save(); ctx.setLineDash([10, 12]); ctx.strokeStyle = "#C9C3D8"; ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(x2, y); ctx.stroke(); ctx.restore();
-}
-function header(ctx, kicker, title) {
-  txt(ctx, kicker, 72, 170, { fam: F.mono, size: 28, color: C.lane, w: 600, track: 3 });
-  const s = fit(ctx, title, 900, 150, F.display, W - 144);
-  txt(ctx, title, 72, 170 + s * 0.95 + 20, { fam: F.display, w: 900, size: s, color: "#fff" });
-}
-
-export function renderCard(kind, s, opt) {
-  const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
-  const ctx = cv.getContext("2d"), u = opt.u, brand = opt.brand;
-  ground(ctx, s.year, brand);
-  CARDS[kind](ctx, s, u, opt);
-  return cv;
-}
-
-export function cardKinds(s, routes) {
-  const k = ["bib", "slip", "sports", "months", "habits"];
-  if (s.longest && s.longest.dist > 0) k.push("bigdays");
-  if (routes && routes.size >= 4) k.push("routes");
-  return k;
-}
+const PIN = `<svg class="pin" viewBox="0 0 220 60" aria-hidden="true"><defs><linearGradient id="pw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FBFBF6"/><stop offset=".45" stop-color="#C9CAC2"/><stop offset="1" stop-color="#7C7E74"/></linearGradient><linearGradient id="ph" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#EDEDE6"/><stop offset="1" stop-color="#8E9086"/></linearGradient></defs><path d="M176 14 L32 14 C6 14 6 46 32 46 L180 46" fill="none" stroke="rgba(0,0,0,.3)" stroke-width="5" transform="translate(3 5)"/><path d="M176 14 L32 14 C6 14 6 46 32 46 L180 46" fill="none" stroke="url(#pw)" stroke-width="4.5" stroke-linecap="round"/><circle cx="22" cy="30" r="9" fill="none" stroke="url(#pw)" stroke-width="4"/><rect x="166" y="6" width="46" height="48" rx="12" fill="url(#ph)" stroke="#6E7068" stroke-width="1.5"/><path d="M174 18 H204" stroke="rgba(255,255,255,.7)" stroke-width="2"/></svg>`;
 
 const CARDS = {
-  bib(ctx, s, u, o) {
-    const x = 90, y = 420, w = W - 180, h = 1020;
-    bib(ctx, x, y, w, h);
-    rr(ctx, x, y, w, 150, [22, 22, 0, 0]); ctx.fillStyle = C.ink; ctx.fill();
-    pins(ctx, x, y, w, h);
-    txt(ctx, "THE YEAR", x + 90, y + 98, { fam: F.display, w: 700, size: 64, color: "#fff", track: 4 });
-    txt(ctx, String(s.year), x + w - 90, y + 98, { fam: F.display, w: 700, size: 64, color: C.tape, align: "right", track: 4 });
-    const n = u.d(s.dist);
-    const sz = fit(ctx, n, 900, 460, F.display, w - 160);
-    txt(ctx, n, x + w / 2, y + 230 + sz * 0.82, { fam: F.display, w: 900, size: sz, align: "center" });
-    txt(ctx, u.name.toUpperCase(), x + w / 2, y + 300 + sz * 0.82, { fam: F.mono, size: 34, w: 600, color: C.soft, align: "center", track: 8 });
-    const who = o.name ? `${o.name.toUpperCase()}` : "ATHLETE";
-    txt(ctx, who, x + w / 2, y + 395 + sz * 0.82, { fam: F.display, size: 72, w: 700, align: "center", track: 2 });
-    perf(ctx, x + 30, x + w - 30, y + h - 260);
-    const cols = [[String(s.count), "ACTIVITIES"], [hrs(s.moving), "HOURS"], [String(s.activeDays), "ACTIVE DAYS"]];
-    cols.forEach(([v, l], i) => {
-      const cx = x + w / 6 + i * w / 3;
-      txt(ctx, v, cx, y + h - 130, { fam: F.display, w: 900, size: 92, align: "center" });
-      txt(ctx, l, cx, y + h - 78, { fam: F.mono, size: 22, w: 600, color: C.soft, align: "center", track: 3 });
-    });
+  bib(s, o) {
+    const u = o.u;
+    const [num, label] = o.bib === "Hours" ? [hrs(s.moving), "Hours moving"] : o.bib === "Activities" ? [String(s.count), "Activities"] : [u.d(s.dist), u.long];
+    return frame(o, 1, "My year in sport", "Every kilometre,", "on one bib.", `
+<div class="yb-mid"><div class="bib">
+<div class="paper bibp">
+<div class="band"><span>Yearbib</span><b>${s.year}</b></div>
+<div class="bnum"><span class="n" style="font-size:${num.length > 5 ? 290 : num.length > 4 ? 330 : 360}px">${num}</span><span class="l">${label}</span><span class="who">${esc(o.name).toUpperCase()}</span></div>
+<div class="holes">${"<i></i>".repeat(32)}</div>
+<div class="strip"><div><b>${s.count}</b><small>Activities</small></div><div><b>${hrs(s.moving)} h</b><small>Moving</small></div><div><b>${s.activeDays}</b><small>Active days</small></div></div>
+</div>
+<span class="p1">${PIN}</span><span class="p2">${PIN}</span><span class="p3">${PIN}</span><span class="p4">${PIN}</span>
+</div></div>`).replace("Every kilometre,", o.u.short === "mi" ? "Every mile," : "Every kilometre,");
   },
 
-  slip(ctx, s, u) {
-    header(ctx, "RESULTS", "The full year.");
-    const x = 120, y = 470, w = W - 240;
-    const rows = [
-      ["Distance", `${u.d(s.dist)} ${u.short}`],
-      ["Moving time", `${hrs(s.moving)} h`],
-      ["Climbing", u.e(s.elev)],
-      ["Activities", String(s.count)],
-      ["Active days", `${s.activeDays} of ${daysIn(s.year)}`],
-      ["Longest streak", `${s.streak} day${s.streak === 1 ? "" : "s"}`],
-    ];
-    const h = 220 + rows.length * 120;
-    ctx.save(); ctx.shadowColor = "rgba(10,5,30,.45)"; ctx.shadowBlur = 40; ctx.shadowOffsetY = 18;
-    ctx.fillStyle = C.bib; ctx.beginPath();
-    ctx.moveTo(x, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + h);
-    for (let i = 0; i <= 24; i++) ctx.lineTo(x + w - i * w / 24, y + h - (i % 2 ? 18 : 0));
-    ctx.closePath(); ctx.fill(); ctx.restore();
-    txt(ctx, "OFFICIAL TIMING", x + w / 2, y + 90, { fam: F.mono, size: 26, w: 600, color: C.soft, align: "center", track: 6 });
-    perf(ctx, x + 40, x + w - 40, y + 140);
-    rows.forEach(([l, v], i) => {
-      const ry = y + 240 + i * 120;
-      txt(ctx, l, x + 60, ry, { fam: F.mono, size: 30, color: C.soft });
-      txt(ctx, v, x + w - 60, ry, { fam: F.display, w: 900, size: 72, align: "right" });
-    });
-    const ev = s.elev / EVEREST_M, earth = s.dist / 1000 / EARTH_KM;
-    const line = ev >= 1 ? `That climbing is ${ev.toFixed(1)} times up Everest.` : earth >= 0.05 ? `That distance is ${Math.round(earth * 100)}% of the way around the Earth.` : "";
-    if (line) txt(ctx, line, 72, y + h + 130, { fam: F.body, size: 44, w: 600, color: "#fff" });
+  results(s, o) {
+    const u = o.u, ev = s.elev / EVEREST_M;
+    const rows = [["Moving time", hm(s.moving)], ["Elevation gain", u.e(s.elev)], ["Activities", s.count], ["Active days", s.activeDays], ["Longest streak", `${s.streak} day${s.streak === 1 ? "" : "s"}`], ["Weekly average", `${u.d(s.weekly / 1, 1)} ${u.short}`]];
+    let seed = 7; const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
+    const bars = Array.from({ length: 46 }, () => `<i style="width:${rnd() < .35 ? 7 : 3}px"></i>`).join("");
+    return frame(o, 2, "Official results", "The year,", "in numbers.", `
+<div class="yb-mid gap"><div class="paper slip">
+<div class="sh"><span class="t1">YEARBIB TIMING</span><span class="t2">Season ${s.year} · ${esc(o.name)}</span></div>
+<div class="dash"></div>
+<div class="tot"><span class="t2">Total distance</span><b>${u.d(s.dist, 1)} ${u.short}</b></div>
+<div class="dash"></div>
+${rows.map(([l, v]) => `<div class="row"><span>${l}</span><i></i><b>${v}</b></div>`).join("")}
+${ev >= 0.1 ? `<div class="dash"></div><div class="ev"><span>All that climbing, in Everests</span><b>${ev.toFixed(1)}×</b></div>` : ""}
+<div class="bars">${bars}</div>
+<span class="t2 c">Printed by yearbib.com</span>
+</div></div>`);
   },
 
-  sports(ctx, s, u) {
-    header(ctx, "BY SPORT", "Where the hours went.");
-    const list = s.sports.slice(0, 5), max = list[0]?.moving || 1;
-    const y0 = 560, lh = 230;
-    list.forEach((sp, i) => {
-      const y = y0 + i * lh;
-      txt(ctx, sp.name.toUpperCase(), 72, y, { fam: F.display, w: 900, size: 96, color: "#fff" });
-      const meta = `${sp.count} × · ${hrs(sp.moving)} h${sp.dist > 0 ? ` · ${u.d(sp.dist)} ${u.short}` : ""}`;
-      txt(ctx, meta, W - 72, y, { fam: F.mono, size: 28, color: C.lane, align: "right" });
-      const bw = Math.max(24, (W - 144) * sp.moving / max);
-      rr(ctx, 72, y + 34, bw, 46, 23); ctx.fillStyle = i === 0 ? C.tape : C.lane; ctx.fill();
-    });
+  sport(s, o) {
+    const list = s.sports.slice(0, 4), max = list[0]?.moving || 1, topS = list[0];
+    const verb = { Run: "running", Ride: "riding", Walk: "walking", Swim: "swimming", Other: "training" };
+    return frame(o, 3, "By sport", "Where the", "hours went.", `
+<div class="yb-mid"><div class="lanes">
+${list.map((sp, i) => `<div class="lane"><span class="ln">${i + 1}</span><div class="lc"><div class="lt"><b>${sp.name}</b><span>${hrs(sp.moving)} h · ${sp.dist > 0 ? `${o.u.d(sp.dist)} ${o.u.short} · ` : ""}${sp.count}×</span></div><div class="track"><div style="width:${Math.max(3, Math.round(sp.moving / max * 100))}%;background:${i === 0 ? "var(--accent)" : "#DDE1D2"}"></div></div></div></div>`).join("")}
+</div></div>
+<p class="yb-note">Most of your year went to <b>${verb[topS?.name] || "training"}, ${hrs(topS?.moving || 0)} hours.</b></p>`);
   },
 
-  months(ctx, s) {
-    header(ctx, "BY MONTH", `${MON[s.bestMonth.m]} was the big one.`);
-    const max = Math.max(...s.months.map(m => m.moving), 1);
-    const x0 = 72, bw = 62, gap = (W - 144 - bw * 12) / 11, base = 1560, top = 620;
-    s.months.forEach((m, i) => {
-      const x = x0 + i * (bw + gap), h = Math.max(6, (base - top) * m.moving / max);
-      rr(ctx, x, base - h, bw, h, 12); ctx.fillStyle = m.m === s.bestMonth.m ? C.tape : C.lane; ctx.fill();
-      txt(ctx, MON[i][0], x + bw / 2, base + 56, { fam: F.mono, size: 30, w: 600, color: "#fff", align: "center" });
-    });
-    txt(ctx, `${hrs(s.bestMonth.moving)} hours in ${MON[s.bestMonth.m]}, across ${s.bestMonth.count} activities.`, 72, base + 160, { fam: F.body, size: 40, w: 600, color: "#fff" });
+  profile(s, o) {
+    const W = 912, H = 760, h = s.months.map(m => m.moving / 3600), max = Math.max(...h, 1) * 1.08;
+    const pts = h.map((v, i) => [38 + i * (W - 76) / 11, H - v / max * (H - 40)]);
+    let d = `M${pts[0][0]} ${pts[0][1]}`;
+    for (let i = 1; i < 12; i++) { const [x0, y0] = pts[i - 1], [x1, y1] = pts[i], mx = (x0 + x1) / 2; d += ` C${mx} ${y0} ${mx} ${y1} ${x1} ${y1}`; }
+    const b = s.bestMonth, p = pts[b.m], ratio = s.avgMonth ? b.moving / s.avgMonth : 1;
+    const rel = ratio >= 1.9 && ratio < 2.2 ? "double your usual month" : ratio >= 1.2 ? `${ratio.toFixed(1)} times your usual month` : "your busiest month";
+    return frame(o, 4, "Your season's profile", `${MON[b.m]} was`, "the summit.", `
+<div class="yb-mid col"><div class="prof">
+<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><path d="M0 190H912M0 380H912M0 570H912" stroke="rgba(221,225,210,.25)" stroke-width="2" stroke-dasharray="4 10"/><path d="${d} L${pts[11][0]} ${H} L${pts[0][0]} ${H}Z" fill="var(--accent)" fill-opacity=".2"/><path d="${d}" fill="none" stroke="var(--accent)" stroke-width="5"/></svg>
+<div class="flag" style="left:${p[0] / W * 100}%;top:${p[1] / H * 100}%"><b>${hrs(b.moving)} h</b><i></i><em></em></div>
+</div><div class="ml">${"JFMAMJJASOND".split("").map((c, i) => `<span${i === b.m ? ' class="on"' : ""}>${c}</span>`).join("")}</div></div>
+<p class="yb-note">${hrs(b.moving)} hours across ${b.count} activities, <b>${rel}.</b></p>`);
   },
 
-  habits(ctx, s) {
-    header(ctx, "HABITS", "You kept showing up.");
-    const x = 90, y = 520, w = W - 180, h = 560;
-    bib(ctx, x, y, w, h); pins(ctx, x, y, w, h);
-    txt(ctx, String(s.streak), x + w / 2, y + 330, { fam: F.display, w: 900, size: 300, align: "center" });
-    txt(ctx, "DAYS IN A ROW, YOUR LONGEST STREAK", x + w / 2, y + 420, { fam: F.mono, size: 26, w: 600, color: C.soft, align: "center", track: 3 });
-    if (s.streakEnd) {
-      const d = new Date(s.streakEnd + "T00:00:00Z");
-      txt(ctx, `It ended on ${MON[d.getUTCMonth()]} ${d.getUTCDate()}.`, x + w / 2, y + 480, { fam: F.body, size: 34, color: C.soft, align: "center" });
+  log(s, o) {
+    const lvl = sec => !sec ? 0 : sec < 3240 ? 1 : sec < 6120 ? 2 : 3;
+    const fills = ["rgba(221,225,210,.12)", "#6C7553", "#A9B36E", "#D4E27A"];
+    const st = s.streakStart?.getTime(), en = s.streakEnd?.getTime();
+    const months = MON.map((name, m) => {
+      const len = new Date(Date.UTC(s.year, m + 1, 0)).getUTCDate(), lead = (new Date(Date.UTC(s.year, m, 1)).getUTCDay() + 6) % 7;
+      let c = "<i></i>".repeat(lead);
+      for (let dd = 1; dd <= len; dd++) {
+        const t = Date.UTC(s.year, m, dd), k = new Date(t).toISOString().slice(0, 10);
+        c += `<i style="background:${fills[lvl(s.perDay.get(k))]}${t >= st && t <= en && s.streak > 1 ? ";box-shadow:0 0 0 3px #D2FF00" : ""}"></i>`;
+      }
+      return `<div class="mo"><span>${name.slice(0, 3)}</span><div class="g">${c}</div></div>`;
+    }).join("");
+    return frame(o, 5, "Your training log", `${s.activeDays} days out,`, `of ${s.daysInYear}.`, `
+<div class="yb-mid"><div class="cal">${months}</div></div>
+<div class="legend"><span>Longest streak: <b>${s.streak} day${s.streak === 1 ? "" : "s"}${s.streakEnd ? ` in ${MON[s.streakEnd.getUTCMonth()]}` : ""}</b></span><span class="sc">Less${fills.map(f => `<i style="background:${f}"></i>`).join("")}More</span></div>`);
+  },
+
+  big(s, o) {
+    const u = o.u, medal = (size, tone, kind, val, unit, cls) => `<div class="medal ${cls}"><div class="rib"><i style="background:${tone}"></i><i style="background:#F4F4ED"></i></div><div class="disc" style="width:${size}px;height:${size}px;background:radial-gradient(circle at 34% 28%,rgba(255,255,255,.75) 0,${tone} 34%,color-mix(in srgb,${tone} 62%,#000) 100%);box-shadow:inset 0 0 0 ${Math.round(size * .035)}px color-mix(in srgb,${tone} 70%,#000),inset 0 0 0 ${Math.round(size * .06)}px rgba(255,255,255,.35),0 30px 50px rgba(0,0,0,.45)"><span class="k">${kind}</span><b>${val}</b><span class="un">${unit}</span></div></div>`;
+    const cap = a => `<span class="nm">${esc(a.name || a.type)}</span><span class="dt">${dayName(a.date)}</span>`;
+    const L = s.longest, C = s.biggestClimb, T = s.longestTime;
+    return frame(o, 6, "Big days", "The ones you", "remember.", `
+<div class="yb-mid col big">
+<div class="bigone">${medal(360, "var(--accent)", "Longest", u.d(L.dist), u.short.toUpperCase(), "lg")}${cap(L)}</div>
+<div class="two">
+${C && C.elev > 0 ? `<div>${medal(250, "#DDE1D2", "Most climbing", u.e(C.elev).replace(/ (m|ft)$/, ""), o.u.short === "mi" ? "FT" : "M", "sm")}${cap(C)}</div>` : ""}
+<div>${medal(250, "#C9A77C", "Longest time", hm(T.moving).replace(" h ", ":").replace(" m", ""), "HOURS", "sm")}${cap(T)}</div>
+</div></div>`);
+  },
+
+  route(s, o) {
+    const a = s.longest, pts = o.routes.get(a.id);
+    const k = Math.cos(pts[0][0] * Math.PI / 180), W = 880, H = 600;
+    const xs = pts.map(p => p[1] * k), ys = pts.map(p => -p[0]);
+    const x1 = Math.min(...xs), x2 = Math.max(...xs), y1 = Math.min(...ys), y2 = Math.max(...ys);
+    const sc = Math.min((W - 60) / (x2 - x1 || 1e-9), (H - 60) / (y2 - y1 || 1e-9));
+    const ox = (W - (x2 - x1) * sc) / 2, oy = (H - (y2 - y1) * sc) / 2;
+    const P = pts.map((p, i) => [ox + (xs[i] - x1) * sc, oy + (ys[i] - y1) * sc]);
+    const d = "M" + P.map(p => p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" L");
+    const hav = (p, q) => { const r = Math.PI / 180, dl = (q[0] - p[0]) * r, dn = (q[1] - p[1]) * r, x = Math.sin(dl / 2) ** 2 + Math.cos(p[0] * r) * Math.cos(q[0] * r) * Math.sin(dn / 2) ** 2; return 12742000 * Math.asin(Math.sqrt(x)); };
+    const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + hav(pts[i - 1], pts[i]));
+    const tot = cum[cum.length - 1] || 1, unitM = o.u.k, step = Math.max(1, Math.ceil(a.dist / unitM / 6 / 5) * 5);
+    let marks = "";
+    for (let m = step; m * unitM < a.dist; m += step) { const t = m * unitM / a.dist * tot, i = cum.findIndex(c => c >= t); if (i > 0) marks += `<span class="km" style="left:${P[i][0] / W * 100}%;top:${P[i][1] / H * 100}%">${m}</span>`; }
+    const el = pts.map(p => p[2]).filter(v => v != null);
+    let prof = "";
+    if (el.length > 10) {
+      const lo = Math.min(...el), hi = Math.max(...el) || 1, n = el.length;
+      const line = "M" + el.map((v, i) => `${(i / (n - 1) * 880).toFixed(1)} ${(140 - (v - lo) / (hi - lo || 1) * 120).toFixed(1)}`).join(" L");
+      prof = `<svg class="elev" viewBox="0 0 880 150" preserveAspectRatio="none" aria-hidden="true"><path d="${line} L880 150 L0 150Z" fill="var(--accent)" fill-opacity=".22"/><path d="${line}" fill="none" stroke="var(--accent)" stroke-width="3"/></svg>`;
     }
-    txt(ctx, "Favourite day to go", 72, y + h + 160, { fam: F.mono, size: 28, color: C.lane, track: 2 });
-    txt(ctx, DAYS[s.favDay], 72, y + h + 290, { fam: F.display, w: 900, size: 130, color: "#fff" });
-    txt(ctx, `${s.weekdays[s.favDay]} activities on ${DAYS[s.favDay]} this year.`, 72, y + h + 370, { fam: F.body, size: 38, color: "#fff" });
-  },
-
-  bigdays(ctx, s, u) {
-    header(ctx, "BIG DAYS", "The ones you remember.");
-    const items = [];
-    if (s.longest?.dist > 0) items.push(["LONGEST", s.longest, `${u.d(s.longest.dist)} ${u.short}`]);
-    if (s.biggestClimb?.elev > 0 && s.biggestClimb !== s.longest) items.push(["MOST CLIMBING", s.biggestClimb, u.e(s.biggestClimb.elev)]);
-    if (s.longestTime && !items.some(i => i[1] === s.longestTime)) items.push(["LONGEST TIME OUT", s.longestTime, `${hrs(s.longestTime.moving)} h`]);
-    items.slice(0, 3).forEach(([k, a, v], i) => {
-      const y = 520 + i * 400, x = 90, w = W - 180;
-      bib(ctx, x, y, w, 340); pins(ctx, x, y, w, 340);
-      txt(ctx, k, x + 80, y + 100, { fam: F.mono, size: 24, w: 600, color: C.soft, track: 4 });
-      const sz = fit(ctx, v, 900, 130, F.display, w - 160);
-      txt(ctx, v, x + 80, y + 100 + sz * 0.95, { fam: F.display, w: 900, size: sz });
-      const d = a.date, nm = (a.name || a.type).slice(0, 40);
-      txt(ctx, `${nm}, ${MON[d.getUTCMonth()]} ${d.getUTCDate()}`, x + 80, y + 290, { fam: F.body, size: 34, color: C.soft });
-    });
-  },
-
-  routes(ctx, s, u, o) {
-    header(ctx, "EVERY ROUTE", `${o.routes.size} routes drawn.`);
-    const list = s.acts.filter(a => o.routes.has(a.id)).sort((a, b) => b.dist - a.dist).slice(0, 120);
-    const n = list.length, cols = Math.ceil(Math.sqrt(n * (W - 144) / 1150)), rows = Math.ceil(n / cols);
-    const cw = (W - 144) / cols, ch = Math.min(cw, 1150 / rows), y0 = 520;
-    ctx.strokeStyle = "#fff"; ctx.lineJoin = ctx.lineCap = "round";
-    list.forEach((a, i) => {
-      const p = o.routes.get(a.id), cx = 72 + (i % cols) * cw, cy = y0 + Math.floor(i / cols) * ch;
-      const k = Math.cos(p[0][0] * Math.PI / 180);
-      let x1 = 1e9, x2 = -1e9, y1 = 1e9, y2 = -1e9;
-      for (const [la, lo] of p) { const x = lo * k; x1 = Math.min(x1, x); x2 = Math.max(x2, x); y1 = Math.min(y1, la); y2 = Math.max(y2, la); }
-      const sc = Math.min((cw - 18) / (x2 - x1 || 1e-9), (ch - 18) / (y2 - y1 || 1e-9));
-      const ox = cx + (cw - (x2 - x1) * sc) / 2, oy = cy + (ch - (y2 - y1) * sc) / 2;
-      ctx.lineWidth = Math.max(2.5, cw / 38); ctx.strokeStyle = i === 0 ? C.tape : "#fff";
-      ctx.beginPath();
-      p.forEach(([la, lo], j) => { const X = ox + (lo * k - x1) * sc, Y = oy + (y2 - la) * sc; j ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); });
-      ctx.stroke();
-    });
-    txt(ctx, `Yellow is the longest: ${list[0].name}, ${u.d(list[0].dist)} ${u.short}.`, 72, 1720, { fam: F.body, size: 36, w: 600, color: "#fff" });
+    const pace = a.dist > 0 ? a.moving / (a.dist / unitM) : 0;
+    const [l1, ...rest] = (a.name || a.type).split(" ");
+    return frame(o, 7, `Longest activity · ${dayName(a.date)}`, rest.length ? esc(l1) : "Your longest", esc(rest.length ? rest.join(" ") + "." : (a.name || a.type) + "."), `
+<div class="yb-mid"><div class="map"><svg viewBox="0 0 ${W} ${H}" aria-hidden="true"><path d="${d}" fill="none" stroke="var(--accent)" stroke-opacity=".22" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="#F4F4ED" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>${marks}<span class="start" style="left:${P[0][0] / W * 100}%;top:${P[0][1] / H * 100}%"></span></div></div>
+${prof}
+<div class="rstats"><div><b>${o.u.d(a.dist, 1)} ${o.u.short}</b><small>Distance</small></div><div><b>${Math.floor(a.moving / 3600)}:${String(Math.round(a.moving % 3600 / 60)).padStart(2, "0")}</b><small>Moving time</small></div><div><b>${o.u.e(a.elev)}</b><small>Climbed</small></div><div><b>${Math.floor(pace / 60)}:${String(Math.round(pace % 60)).padStart(2, "0")}</b><small>Per ${o.u.short}</small></div></div>`);
   },
 };
 
-const daysIn = y => (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0 ? 366 : 365;
+export const CARD_LIST = [
+  ["bib", "The bib"], ["results", "Official results"], ["sport", "By sport"], ["profile", "Season profile"],
+  ["log", "Training log"], ["big", "Big days"], ["route", "Longest route"],
+];
+
+export function available(s, routes) {
+  return CARD_LIST.filter(([k]) => k !== "route" || (s.longest && routes.has(s.longest.id)))
+    .filter(([k]) => k !== "big" || (s.longest && s.longest.dist > 0))
+    .filter(([k]) => k !== "sport" || s.sports.length > 0);
+}
+
+export function renderCard(kind, s, o) { return CARDS[kind](s, o); }
