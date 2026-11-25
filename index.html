@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yearbib: your year in sport, free</title>
+<meta name="description" content="Turn the export Strava already gives you into a year-in-sport recap. Free, and nothing leaves your browser.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Familjen+Grotesk:wght@400;600&family=Martian+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top"><span class="mark">Yearbib</span><a href="https://github.com/omlahore/yearbib">Source on GitHub</a></header>
+
+<main>
+  <section class="hero" id="intro">
+    <div class="pitch">
+      <h1>Your year in sport, free.</h1>
+      <p>Strava now charges $80 a year for its Year in Sport. Everything it needs is already in the data export Strava gives you for free. Drop that zip here and get your year as cards you can share.</p>
+      <p class="private">Your file is read on this device. Nothing is uploaded.</p>
+    </div>
+    <canvas id="sample" class="sample" width="1080" height="1920" aria-label="Example recap card"></canvas>
+  </section>
+
+  <section class="drop" id="drop" tabindex="0" role="button" aria-describedby="drop-help">
+    <span class="pin tl"></span><span class="pin tr"></span><span class="pin bl"></span><span class="pin br"></span>
+    <strong>Drop your export zip here</strong>
+    <span id="drop-help">or choose the file. Big exports with photos are fine.</span>
+    <input type="file" id="file" accept=".zip,application/zip">
+    <span class="status" id="status" role="status"></span>
+  </section>
+
+  <section class="how">
+    <h2>Getting your export</h2>
+    <ol>
+      <li>On strava.com, open Settings, then My Account.</li>
+      <li>Under "Download or Delete Your Account", choose Get Started, then Request Your Archive.</li>
+      <li>Strava emails you a link to the zip, usually within a few hours. Download it and drop it above.</li>
+    </ol>
+  </section>
+
+  <section class="result" id="result" hidden>
+    <div class="controls">
+      <label>Year <select id="year"></select></label>
+      <div class="units" role="group" aria-label="Units">
+        <button data-mi="0" aria-pressed="true">km</button><button data-mi="1" aria-pressed="false">miles</button>
+      </div>
+      <button class="primary" id="saveall">Save all cards</button>
+    </div>
+    <div class="cards" id="cards"></div>
+  </section>
+</main>
+
+<footer>Not made by or affiliated with Strava. Works with the export from your Strava account. Open source.</footer>
+<script type="module" src="app.js"></script>
+</body>
+</html>
