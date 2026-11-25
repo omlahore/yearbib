@@ -115,13 +115,14 @@ ${list.map((sp, i) => `<div class="lane"><span class="ln">${i + 1}</span><div cl
   big(s, o) {
     const u = o.u, medal = (size, tone, kind, val, unit, cls) => `<div class="medal ${cls}"><div class="rib"><i style="background:${tone}"></i><i style="background:#F4F4ED"></i></div><div class="disc" style="width:${size}px;height:${size}px;background:radial-gradient(circle at 34% 28%,rgba(255,255,255,.75) 0,${tone} 34%,color-mix(in srgb,${tone} 62%,#000) 100%);box-shadow:inset 0 0 0 ${Math.round(size * .035)}px color-mix(in srgb,${tone} 70%,#000),inset 0 0 0 ${Math.round(size * .06)}px rgba(255,255,255,.35),0 30px 50px rgba(0,0,0,.45)"><span class="k">${kind}</span><b>${val}</b><span class="un">${unit}</span></div></div>`;
     const cap = a => `<span class="nm">${esc(a.name || a.type)}</span><span class="dt">${dayName(a.date)}</span>`;
-    const L = s.longest, C = s.biggestClimb, T = s.longestTime;
+    const L = s.longest, others = s.acts.filter(a => a !== L), pick = k => others.reduce((b, a) => (!b || a[k] > b[k] ? a : b), null);
+    const C = s.biggestClimb === L ? pick("elev") : s.biggestClimb, T = s.longestTime === L ? pick("moving") : s.longestTime;
     return frame(o, 6, "Big days", "The ones you", "remember.", `
 <div class="yb-mid col yb-big">
 <div class="bigone">${medal(360, "var(--accent)", "Longest", u.d(L.dist), u.short.toUpperCase(), "lg")}${cap(L)}</div>
 <div class="two">
 ${C && C.elev > 0 ? `<div>${medal(250, "#DDE1D2", "Most climbing", u.e(C.elev).replace(/ (m|ft)$/, ""), o.u.short === "mi" ? "FT" : "M", "sm")}${cap(C)}</div>` : ""}
-<div>${medal(250, "#C9A77C", "Longest time", hm(T.moving).replace(" h ", ":").replace(" m", ""), "HOURS", "sm")}${cap(T)}</div>
+${T ? `<div>${medal(250, "#C9A77C", "Longest time", hm(T.moving).replace(" h ", ":").replace(" m", ""), "HOURS", "sm")}${cap(T)}</div>` : ""}
 </div></div>`);
   },
 

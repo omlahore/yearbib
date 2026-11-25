@@ -101,3 +101,5 @@ em{font-style:normal}
 #dropall>div{width:min(980px,100%);height:min(560px,80vh);border:3px dashed var(--moss);border-radius:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;color:var(--paper);animation:pop .35s cubic-bezier(.16,1,.3,1)}
 #dropall .dh em{color:var(--moss)}#dropall .dp{color:var(--sage)}
 @keyframes pop{from{transform:scale(.96);opacity:0}to{transform:none;opacity:1}}
+.line{background:transparent;color:var(--olive);border:2px solid var(--olive)}
+.hero-copy .hint{margin:14px 0 0;font-size:14px;color:#535450}

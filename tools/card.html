@@ -1,0 +1,6 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../cards.css"><style>body{margin:0;width:1080px;height:1920px;overflow:hidden}</style></head><body>
+<script type="module">
+import { demo } from "../demo.js"; import { renderCard, units, THEMES } from "../cards.js";
+const q = new URLSearchParams(location.search), { s, routes } = demo();
+document.body.innerHTML = renderCard(q.get("k"), s, { u: units(false), theme: THEMES[+(q.get("t") || 0)], contours: true, name: "Alex", year: s.year, bib: "Distance", routes });
+</script></body></html>

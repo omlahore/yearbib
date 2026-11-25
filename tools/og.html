@@ -1,0 +1,18 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../cards.css"><link rel="stylesheet" href="../style.css">
+<style>body{margin:0;width:1200px;height:630px;overflow:hidden;background:#F4F4ED url(../img/topo-paper.svg) 0 0/1440px auto;animation:none}
+.wrap{position:relative;width:1200px;height:630px}
+.t{position:absolute;left:64px;top:84px;width:520px}
+.t h1{margin:0;text-transform:uppercase;font-weight:700;font-size:74px;line-height:.9;letter-spacing:-.045em;color:#111112}
+.t h1 em{font-family:"Hubot Sans";font-stretch:125%;font-weight:800;letter-spacing:-.03em;color:#6E7A2A;font-style:normal}
+.t p{margin:26px 0 0;font-size:22px;line-height:1.45;color:#3D3F38;font-family:"Mona Sans"}
+.t .u{margin-top:26px;display:inline-block;background:#D2FF00;color:#282C20;font:700 18px "Mona Sans";padding:12px 18px;border-radius:10px;letter-spacing:.02em}
+.ogc{position:absolute;width:250px;height:444px;border-radius:14px;overflow:hidden;box-shadow:0 30px 60px rgba(20,24,12,.35)}
+.ogc>.yb-card{transform:scale(.2315);transform-origin:0 0}
+</style></head><body><div class="wrap"><div class="t"><h1><em>Your year</em> in sport, free.</h1><p>Seven shareable cards from the export Strava gives you. Made in your browser, nothing uploaded.</p><span class="u">yearbib.vercel.app</span></div></div>
+<script type="module">
+import { demo } from "../demo.js"; import { renderCard, units, THEMES } from "../cards.js";
+const { s, routes } = demo(); const o = { u: units(false), theme: THEMES[0], contours: true, name: "Alex", year: s.year, bib: "Distance", routes };
+const w = document.querySelector('.wrap');
+[["results", 640, 120, -9], ["route", 930, 110, 8], ["bib", 780, 70, -2]].forEach(([k, x, y, r]) => { const d = document.createElement('div'); d.className = 'ogc'; d.style.cssText = `left:${x}px;top:${y}px;transform:rotate(${r}deg)`; d.innerHTML = renderCard(k, s, o); w.append(d); });
+await document.fonts.ready; document.body.dataset.ready = 1;
+</script></body></html>

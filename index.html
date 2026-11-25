@@ -3,10 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Yearbib: your year in sport, free</title>
+<title>Yearbib: your Strava year in sport, free</title>
+<link rel="icon" href="img/icon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://yearbib.vercel.app/">
 <meta name="description" content="Strava charges $80 a year for its Year in Sport. Yearbib makes yours free from the export Strava gives you, right in your browser.">
 <meta property="og:title" content="Yearbib: your year in sport, free">
 <meta property="og:description" content="Seven shareable cards from your Strava export. Free, and nothing leaves your device.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://yearbib.vercel.app/">
+<meta property="og:image" content="https://yearbib.vercel.app/img/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yearbib.vercel.app/img/og.png">
+<meta name="theme-color" content="#282C20">
 <link rel="preload" href="fonts/mona-sans-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/hubot-sans-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="cards.css">
@@ -26,7 +35,8 @@
 <span class="mask"><span><em class="nw">your export</em></span></span>
 </h1>
 <p>Strava now charges $80 a year for its Year in Sport recap. Yearbib makes yours from the data export Strava gives you for free, and it all happens in your browser.</p>
-<div class="hero-cta"><label for="file" class="pill dark big-cta">Choose your Strava zip</label><span class="hint">or drop it anywhere on this page</span></div>
+<div class="hero-cta"><label for="file" class="pill dark big-cta">Choose your Strava zip</label><button class="pill line big-cta" id="sample" type="button">Try it with sample data</button></div>
+<p class="hint">or drop your zip anywhere on this page</p>
 <p class="status hstatus" id="hstatus" role="status" aria-live="polite"></p>
 </div>
 <div class="stage" id="stage" aria-label="Three example recap cards" role="img"></div>

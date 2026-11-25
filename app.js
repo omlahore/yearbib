@@ -1,6 +1,7 @@
 import { readExport, readRoutes } from "./parse.js";
 import { yearStats, years, groupOf } from "./stats.js";
 import { renderCard, available, units, THEMES } from "./cards.js";
+import { demo } from "./demo.js";
 
 const $ = id => document.getElementById(id);
 const st = { data: null, routes: new Map(), routesKey: "", theme: 0, sport: "All", bib: "Distance", mi: false, contours: true, name: "", year: 0 };
@@ -12,23 +13,6 @@ function thumb(html, w) {
   box.innerHTML = html;
   box.firstElementChild.style.transform = `scale(${w / 1080})`;
   return box;
-}
-
-// Landing: demo cards built from a sample season so the page shows real output.
-function demo() {
-  let seed = 11; const r = () => (seed = seed * 16807 % 2147483647) / 2147483647;
-  const acts = [], routes = new Map(), Y = new Date().getUTCFullYear();
-  for (let i = 0; i < 212; i++) {
-    const day = Math.floor(r() * 330), t = ["Run", "Run", "Ride", "Walk", "Run", "Ride", "Swim"][Math.floor(r() * 7)];
-    const km = t === "Ride" ? 12 + r() * 18 : t === "Run" ? 4 + r() * 14 : t === "Swim" ? 1 + r() * 2 : 2 + r() * 6;
-    acts.push({ id: "d" + i, date: new Date(Date.UTC(Y, 0, 1 + day, 6)), type: t, name: `Morning ${t.toLowerCase()}`, dist: km * 1000, moving: km / ({ Run: 10.5, Ride: 24, Walk: 5, Swim: 2.4 }[t]) * 3600, elev: t === "Swim" ? 0 : km * (6 + r() * 18), file: "" });
-  }
-  const L = { id: "long", date: new Date(Date.UTC(Y, 9, 12, 6)), type: "Run", name: "Sunday long run", dist: 32400, moving: 10260, elev: 286, file: "" };
-  acts.push(L);
-  const pts = []; let la = 19.07, lo = 72.87, h = 0.3, e = 14;
-  for (let i = 0; i < 300; i++) { h += (r() - .5) * .35 + .021; la += Math.cos(h) * .0011; lo += Math.sin(h) * .0011; e = Math.max(4, e + (r() - .48) * 4); pts.push([la, lo, e]); }
-  routes.set("long", pts);
-  return { s: yearStats(acts, Y), routes, Y };
 }
 
 function opts(s, routes, name) {
@@ -56,19 +40,24 @@ function landing() {
 
 // Upload
 const status = t => { $("status").textContent = t; $("hstatus").textContent = t; };
+function showRecap(data) {
+  st.data = data; st.name = data.firstName || "";
+  const ys = years(data.activities); st.year = ys[0]; st.routesKey = "";
+  $("year").innerHTML = ys.map(y => `<option>${y}</option>`).join("");
+  $("nm").value = st.name;
+  $("found").textContent = `${data.activities.length} activities${data.sampleRoutes ? " in the sample" : " found"} · nothing uploaded`;
+  $("landing").hidden = true; $("recap").hidden = false; scrollTo(0, 0);
+  return draw();
+}
+$("sample").onclick = () => { const d = demo(); showRecap({ activities: d.acts, firstName: "Alex", sampleRoutes: d.routes }); };
+
 async function open(file) {
   if (!file) return;
   status(`Reading ${file.name}…`);
   try {
     const data = await readExport(file);
     if (!data.activities.length) throw new Error("No activities found in this export.");
-    st.data = data; st.name = data.firstName || "";
-    const ys = years(data.activities); st.year = ys[0];
-    $("year").innerHTML = ys.map(y => `<option>${y}</option>`).join("");
-    $("nm").value = st.name;
-    $("found").textContent = `${data.activities.length} activities found · nothing uploaded`;
-    $("landing").hidden = true; $("recap").hidden = false; scrollTo(0, 0);
-    await draw();
+    await showRecap(data);
     status("");
   } catch (e) {
     status(e.message || "Could not read this file. Use the zip Strava emails you.");
@@ -80,7 +69,7 @@ async function draw() {
   const key = st.year + st.sport;
   if (st.routesKey !== key) {
     const need = s.longest ? [s.longest] : [];
-    st.routes = await readRoutes(st.data.zip, st.data.base, need);
+    st.routes = st.data.sampleRoutes || await readRoutes(st.data.zip, st.data.base, need);
     st.routesKey = key;
   }
   $("ptitle").textContent = `${st.name || "Your"}${st.name ? "'s" : ""} ${st.year},`;
