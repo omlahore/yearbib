@@ -91,3 +91,13 @@ em{font-style:normal}
 #render{position:fixed;left:-20000px;top:0}
 @media (max-width:900px){.hh{font-size:9.4vw}.stage{height:460px}.steps{grid-template-columns:minmax(0,1fr)}.scatter{height:auto;display:flex;flex-wrap:wrap;gap:20px;justify-content:center}.sc{position:relative;left:auto!important;top:auto!important;transform:none!important;width:150px}.vs{display:none}.panel{position:static;max-width:none}}
 @media (prefers-reduced-motion:reduce){.paper-bg,.olive-bg,.track,.mask>span,.deal,.cardbox{animation:none!important}html{scroll-behavior:auto}}
+
+.hero-cta{margin-top:30px;display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap}
+.big-cta{min-height:56px;padding:0 30px;font-size:15px;border-radius:12px}
+.hint{font-size:14px;color:#535450}
+.hstatus{margin:14px 0 0!important;font-size:14px;font-weight:600;color:var(--olive)}
+#dropall{position:fixed;inset:0;z-index:50;background:rgba(40,44,32,.82);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:24px}
+#dropall[hidden]{display:none}
+#dropall>div{width:min(980px,100%);height:min(560px,80vh);border:3px dashed var(--moss);border-radius:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;color:var(--paper);animation:pop .35s cubic-bezier(.16,1,.3,1)}
+#dropall .dh em{color:var(--moss)}#dropall .dp{color:var(--sage)}
+@keyframes pop{from{transform:scale(.96);opacity:0}to{transform:none;opacity:1}}

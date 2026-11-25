@@ -55,7 +55,7 @@ function landing() {
 }
 
 // Upload
-const status = t => ($("status").textContent = t);
+const status = t => { $("status").textContent = t; $("hstatus").textContent = t; };
 async function open(file) {
   if (!file) return;
   status(`Reading ${file.name}…`);
@@ -150,11 +150,14 @@ function controls() {
   $("again").onclick = back; $("home").onclick = back;
 }
 
-const dz = $("dropzone");
+const dz = $("dropzone"), over = $("dropall");
 $("file").addEventListener("change", e => open(e.target.files[0]));
-dz.addEventListener("dragover", e => { e.preventDefault(); dz.classList.add("over"); });
-dz.addEventListener("dragleave", () => dz.classList.remove("over"));
-dz.addEventListener("drop", e => { e.preventDefault(); dz.classList.remove("over"); open(e.dataTransfer.files[0]); });
+let depth = 0;
+const hasFile = e => [...(e.dataTransfer?.types || [])].includes("Files");
+addEventListener("dragenter", e => { if (!hasFile(e) || !$("recap").hidden) return; e.preventDefault(); if (++depth === 1) over.hidden = false; });
+addEventListener("dragover", e => { if (hasFile(e)) e.preventDefault(); });
+addEventListener("dragleave", e => { if (!hasFile(e)) return; if (--depth <= 0) { depth = 0; over.hidden = true; } });
+addEventListener("drop", e => { if (!hasFile(e)) return; e.preventDefault(); depth = 0; over.hidden = true; dz.classList.remove("over"); if ($("recap").hidden) open(e.dataTransfer.files[0]); });
 addEventListener("resize", () => { if (st.data) draw(); });
 document.fonts.ready.then(landing);
 controls();

@@ -26,6 +26,8 @@
 <span class="mask"><span><em class="nw">your export</em></span></span>
 </h1>
 <p>Strava now charges $80 a year for its Year in Sport recap. Yearbib makes yours from the data export Strava gives you for free, and it all happens in your browser.</p>
+<div class="hero-cta"><label for="file" class="pill dark big-cta">Choose your Strava zip</label><span class="hint">or drop it anywhere on this page</span></div>
+<p class="status hstatus" id="hstatus" role="status" aria-live="polite"></p>
 </div>
 <div class="stage" id="stage" aria-label="Three example recap cards" role="img"></div>
 <aside class="vs"><span>Strava recap</span><b>$80 a year</b><span class="sep">Yearbib</span><b>Free</b></aside>
@@ -97,6 +99,7 @@
 </main>
 
 <div id="render" aria-hidden="true"></div>
+<div id="dropall" hidden><div><span class="dh"><em>Drop</em> it anywhere</span><span class="dp">Your Strava zip opens right here, in this tab.</span></div></div>
 <footer class="olive-bg foot"><div class="wrap fr"><span>Yearbib</span><span>Not made by or affiliated with Strava. Strava is a trademark of Strava, Inc.</span></div></footer>
 <script src="vendor/html-to-image.js"></script>
 <script type="module" src="app.js"></script>
